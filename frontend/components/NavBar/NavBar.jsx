@@ -74,14 +74,21 @@ const NavBar = () => {
     <div className={Style.navbar}>
       <div className={Style.navbar_container}>
         <div className={Style.navbar_container_left}>
-          <div className={Style.logo}>
-            <Image
-              src={images.logo}
-              alt="NFT MARKET PLACE"
-              width={100}
-              height={100}
-            />
-          </div>
+         <div className={`${Style.logo} flex items-center gap-2`}>
+          
+ <div className="p-1  rounded-full">
+  <Image
+    src={images.navlogo_4c5773}
+    alt="NFT MARKET PLACE"
+    width={40}
+    height={35}
+    className=" object-cover"
+  />
+</div>
+
+  <p className="text-xl font-bold  tracking-wide">Anova</p>
+</div>
+
           <div className={Style.navbar_container_left_box_input}>
             <div className={Style.navbar_container_left_box_input_box}>
               <input type="text" placeholder="Search NFT" />

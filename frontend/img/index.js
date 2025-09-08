@@ -54,6 +54,12 @@ import founder2 from "./founder2.jpg";
 import founder3 from "./founder3.jpg";
 import founder4 from "./founder4.jpg";
 import anovalogo from "./anova.png";
+import navlogo from "./navlogo.jpg";
+import navlogoo from "./navlogoo.png";
+import navlogo1 from "./navlogo1.png";
+import navlogo2 from "./navlogo2.png";
+import navlogo_black from "./navlogo_black.png";
+import navlogo_4c5773 from "./navlogo_4c5773.png";
 
 export default {
   hero2,
@@ -111,5 +117,11 @@ export default {
   vimeo,
   youtube,
   zgcmq,
-  anovalogo
+  anovalogo,
+  navlogo,
+  navlogoo,
+  navlogo1,
+  navlogo2,
+  navlogo_black,
+  navlogo_4c5773
 };
