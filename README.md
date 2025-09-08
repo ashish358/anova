@@ -1,46 +1,11 @@
-Installation
+# ANOVA
 
-Clone the repository:
+A simple Next.js project using React, Framer Motion, React Icons, and React Dropzone.
 
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+## Installation
 
-
-Install dependencies:
-
+```cmd
+git clone https://github.com/your-username/anova.git
+cd anova
 npm install
-
-
-Run the development server:
-
 npm run dev
-
-
-Open http://localhost:3000
- to view it in the browser.
-
-Scripts
-
-npm run dev - Runs the app in development mode.
-
-npm run build - Builds the app for production.
-
-npm start - Runs the production build.
-
-Dependencies
-
-next ^12.2.5
-
-react ^18.2.0
-
-react-dom ^18.2.0
-
-framer-motion ^7.2.1
-
-react-dropzone ^14.2.2
-
-react-icons ^4.4.0
-
-License
-
-This project is licensed under the MIT License.
