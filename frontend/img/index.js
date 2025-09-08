@@ -53,6 +53,7 @@ import founder1 from "./founder1.jpg";
 import founder2 from "./founder2.jpg";
 import founder3 from "./founder3.jpg";
 import founder4 from "./founder4.jpg";
+import anovalogo from "./anova.png";
 
 export default {
   hero2,
@@ -110,4 +111,5 @@ export default {
   vimeo,
   youtube,
   zgcmq,
+  anovalogo
 };

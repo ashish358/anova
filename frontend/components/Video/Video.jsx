@@ -10,11 +10,10 @@ const Video = () => {
     <div className={Style.Video}>
       <div className={Style.Video_box}>
         <h1>
-          <span>🎬</span> The Videos
+          <span>🎬</span> Promote adds
         </h1>
         <p>
-          Check out our hottest videos. View more and share more new
-          perspectives on just about any topic. Everyone’s welcome.
+ voluptatum incidunt hic cupiditate mollitia consequatur recusandae voluptatem commodi nulla, repellat doloribus!
         </p>
 
         <div className={Style.Video_box_frame}>
