@@ -1,0 +1,19 @@
+{
+  "name": "nftmarketplace",
+  "version": "1.0.0",
+  "description": "NFT Marketplace",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "daulat hussain",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.1",
+    "hardhat": "^2.26.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
+    "openzeppelin": "^1.0.0"
+  }
+}
