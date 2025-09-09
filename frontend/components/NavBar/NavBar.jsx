@@ -76,13 +76,13 @@ const NavBar = () => {
         <div className={Style.navbar_container_left}>
          <div className={`${Style.logo} flex items-center gap-2`}>
           
- <div className="p-1  rounded-full">
+ <div className="p-1   rounded-full">
   <Image
     src={images.navlogo_4c5773}
     alt="NFT MARKET PLACE"
     width={40}
     height={35}
-    className=" object-cover"
+    className=" object-cover "
   />
 </div>
 

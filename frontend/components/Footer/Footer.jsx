@@ -21,7 +21,11 @@ const Footer = () => {
     <div className={Style.footer}>
       <div className={Style.footer_box}>
         <div className={Style.footer_box_social}>
-          <Image src={images.logo} alt="footer logo" height={100} width={100} />
+          <div className="flex items-center gap-4 align-text-bottom  ">
+          <Image src={images.navlogo_4c5773}  alt="footer logo" height={30} width={30} />
+  <p className="text-xl font-bold  tracking-wide">Anova</p>
+
+        </div>
           <p>
             The world’s first and largest digital marketplace for crypto
             collectibles and non-fungible tokens (NFTs). Buy, sell, and discover
