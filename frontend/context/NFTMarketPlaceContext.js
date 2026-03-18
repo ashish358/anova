@@ -24,6 +24,7 @@ import { useRouter } from "next/router";
 //   }
 // })
 
+
 // internal imports (make sure the paths & names match)
 import { NFTMarketplaceABI, NFTMarketPlaceAddress } from "./constant";
 
@@ -278,6 +279,27 @@ const createSale = async (tokenURI, price) => {
     await tx.wait();
     console.log("NFT minted & listed ✅");
 
+
+  // //////////
+  // const contract = await connectingWithSmartContract();
+
+const provider = contract.runner.provider;
+const code = await provider.getCode(NFTMarketPlaceAddress);
+
+console.log("Address:", NFTMarketPlaceAddress);
+console.log("Contract code:", code);
+// const contract = await connectingWithSmartContract();
+
+// const provider = contract.runner.provider;
+
+const network = await provider.getNetwork();
+console.log("Connected Network:", network);
+
+// const code = await provider.getCode(NFTMarketPlaceAddress);
+console.log("Contract Code:", code);
+
+
+
   } catch (error) {
     console.error("❌ createSale error:", error);
     throw error;
@@ -483,6 +505,52 @@ const fetchNFT = async () => {
     return [];
   }
 };
+// const fetchNFT = async () => {
+//   try {
+//     if (!window.ethereum) return [];
+
+//     const provider = new ethers.BrowserProvider(window.ethereum);
+//     const contract = fetchContract(provider);
+
+//     const data = await contract.fetchMarketItems();
+
+//     const items = await Promise.all(
+//       data.map(async (item) => {
+//         const tokenURI = await contract.tokenURI(item.tokenId);
+//         const meta = await axios.get(tokenURI);
+
+//         return {
+//           tokenId: Number(item.tokenId),
+//           seller: item.seller,
+//           owner: item.owner,
+//           price: ethers.formatUnits(item.price, "ether"),
+//           image: meta.data.image,
+//           name: meta.data.name,
+//           description: meta.data.description,
+//           tokenURI,
+//         };
+//       })
+//     );
+
+//     console.log("Fetched items:", items);
+
+//     return items;
+//   } catch (error) {
+//     console.error("❌ error while fetching NFTs:", error);
+//     return [];
+//   }
+// };
+
+// const [nfts, setNFTs] = useState([]);
+// useEffect(() => {
+//   const loadNFTs = async () => {
+//     const items = await fetchNFT();
+//     setNFTs(items);
+//   };
+
+//   loadNFTs();
+// }, []);
+
 
 useEffect(()=> {
   fetchNFT();
