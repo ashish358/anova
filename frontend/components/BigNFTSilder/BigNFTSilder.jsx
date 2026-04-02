@@ -215,3 +215,4 @@ const BigNFTSilder = () => {
 };
 
 export default BigNFTSilder;
+                  
