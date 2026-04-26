@@ -1,357 +1,376 @@
-import React, { useContext, useState } from "react";
-import Image from "next/image";
-import {
-  MdVerified,
-  MdCloudUpload,
-  MdTimer,
-  MdReportProblem,
-  MdOutlineDeleteSweep,
-} from "react-icons/md";
-import { BsThreeDots } from "react-icons/bs";
-import { FaWallet, FaPercentage } from "react-icons/fa";
-import {
-  TiSocialFacebook,
-  TiSocialLinkedin,
-  TiSocialTwitter,
-  TiSocialYoutube,
-  TiSocialInstagram,
-} from "react-icons/ti";
-import { BiTransferAlt, BiDollar } from "react-icons/bi";
-import {useRouter} from "next/router.js";
+import React, { useContext, useState, useEffect } from "react";
+import { MdTimer } from "react-icons/md";
+import { useRouter } from "next/router";
 
-//INTERNAL IMPORT
 import Style from "./NFTDescription.module.css";
-import images from "../../img";
 import { Button } from "../../components/componentsindex.js";
-import { NFTTabs } from "../NFTDetailsIndex";
-import Link from "next/link.js";
 import { NFTMarketPlaceContext } from "../../context/NFTMarketPlaceContext.js";
 
-const NFTDescription = ({nft}) => {
-
+const NFTDescription = ({ nft }) => {
   const router = useRouter();
-  const [social, setSocial] = useState(false);
-  const [NFTMenu, setNFTMenu] = useState(false);
-  const [history, setHistory] = useState(true);
-  const [provanance, setProvanance] = useState(false);
-  const [owner, setOwner] = useState(false);
 
-  const historyArray = [
-    images.user1,
-    images.user2,
-    images.user3,
-    images.user4,
-    images.user5,
-  ];
-  const provananceArray = [
-    images.user6,
-    images.user7,
-    images.user8,
-    images.user9,
-    images.user10,
-  ];
-  const ownerArray = [
-    images.user1,
-    images.user8,
-    images.user2,
-    images.user6,
-    images.user5,
-  ];
+  const [bidAmount, setBidAmount] = useState("");
+  const [bidHistory, setBidHistory] = useState([]);
+  const [currentBid, setCurrentBid] = useState(0);
+  const [isEnded, setIsEnded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [actionMsg, setActionMsg] = useState("");
 
-  const openSocial = () => {
-    if (!social) {
-      setSocial(true);
-      setNFTMenu(false);
-    } else {
-      setSocial(false);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  const {
+    buyNFT,
+    currentAccount,
+    bidNFT,
+    getBidHistory,
+    endAuction,
+    cancelAuction,
+    withdrawFunds,
+  } = useContext(NFTMarketPlaceContext);
+
+  // ─── ROLE CHECKS ────────────────────────────────────────────────────────────
+
+  const isSeller =
+    currentAccount &&
+    nft?.seller &&
+    currentAccount.toLowerCase() === nft.seller.toLowerCase();
+
+  const isOwner =
+    currentAccount &&
+    nft?.owner &&
+    currentAccount.toLowerCase() === nft.owner.toLowerCase();
+
+  // ─── COUNTDOWN TIMER ────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!nft?.endTime) return;
+
+    const tick = () => {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = nft.endTime - now;
+
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setIsEnded(true);
+        return;
+      }
+
+      setIsEnded(false);
+      setTimeLeft({
+        days: Math.floor(diff / (60 * 60 * 24)),
+        hours: Math.floor((diff % (60 * 60 * 24)) / (60 * 60)),
+        minutes: Math.floor((diff % (60 * 60)) / 60),
+        seconds: Math.floor(diff % 60),
+      });
+    };
+
+    tick(); // Run immediately so no flicker
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [nft]);
+
+  // ─── BID HISTORY POLLING ────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!nft?.tokenId) return;
+
+    const loadBids = async () => {
+      const data = await getBidHistory(nft.tokenId);
+      setBidHistory(data);
+
+      if (data.length > 0) {
+        const highest = Math.max(...data.map((b) => Number(b.amount)));
+        setCurrentBid(highest);
+      } else {
+        // No bids yet — show starting price
+        setCurrentBid(Number(nft.startingPrice || nft.price || 0));
+      }
+    };
+
+    loadBids();
+    const interval = setInterval(loadBids, 5000);
+    return () => clearInterval(interval);
+  }, [nft]);
+
+  // ─── ACTIONS ────────────────────────────────────────────────────────────────
+
+  const handleBid = async () => {
+    if (!bidAmount) return alert("Enter a bid amount");
+
+    const minRequired =
+      bidHistory.length > 0
+        ? currentBid + 0.01   // Must beat current bid by at least 0.01 ETH
+        : Number(nft.startingPrice || nft.price || 0);
+
+    if (Number(bidAmount) < minRequired) {
+      return alert(
+        bidHistory.length > 0
+          ? `Bid must be at least ${minRequired.toFixed(4)} ETH (current bid + 0.01 ETH increment)`
+          : `Bid must be at least ${minRequired} ETH (starting price)`
+      );
+    }
+
+    try {
+      setLoading(true);
+      setActionMsg("Placing bid...");
+      await bidNFT(nft.tokenId, bidAmount);
+      setBidAmount("");
+      setActionMsg("Bid placed successfully! ✅");
+    } catch (err) {
+      console.error(err);
+      setActionMsg("Bid failed ❌ — check console");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const openNFTMenu = () => {
-    if (!NFTMenu) {
-      setNFTMenu(true);
-      setSocial(false);
-    } else {
-      setNFTMenu(false);
+  const handleEndAuction = async () => {
+    if (!window.confirm("Are you sure you want to end this auction?")) return;
+    try {
+      setLoading(true);
+      setActionMsg("Ending auction...");
+      await endAuction(nft.tokenId);
+      setActionMsg("Auction ended ✅");
+    } catch (err) {
+      console.error(err);
+      setActionMsg("Failed to end auction ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const openTabs = (e) => {
-    const btnText = e.target.innerText;
-
-    if (btnText == "Bid History") {
-      setHistory(true);
-      setProvanance(false);
-      setOwner(false);
-    } else if (btnText == "Provanance") {
-      setHistory(false);
-      setProvanance(true);
-      setOwner(false);
+  const handleCancelAuction = async () => {
+    if (!window.confirm("Cancel auction? NFT will be returned to you.")) return;
+    try {
+      setLoading(true);
+      setActionMsg("Cancelling auction...");
+      await cancelAuction(nft.tokenId);
+      setActionMsg("Auction cancelled ✅");
+    } catch (err) {
+      console.error(err);
+      setActionMsg("Failed to cancel auction ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const openOwmer = () => {
-    if (!owner) {
-      setOwner(true);
-      setHistory(false);
-      setProvanance(false);
-    } else {
-      setOwner(false);
-      setHistory(true);
+  const handleBuyNFT = async () => {
+    try {
+      setLoading(true);
+      setActionMsg("Purchasing NFT...");
+      await buyNFT(nft);
+      setActionMsg("NFT purchased ✅");
+    } catch (err) {
+      console.error(err);
+      setActionMsg("Purchase failed ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
-
-  // smart contract data
-  const {buyNFT, currentAccount} = useContext(NFTMarketPlaceContext);
-
-const isSeller =
-  currentAccount &&
-  nft?.seller &&
-  currentAccount.toLowerCase() === nft.seller.toLowerCase();
-
-const isOwner =
-  currentAccount &&
-  nft?.owner &&
-  currentAccount.toLowerCase() === nft.owner.toLowerCase();
-
+  // ─── RENDER ─────────────────────────────────────────────────────────────────
 
   return (
     <div className={Style.NFTDescription}>
       <div className={Style.NFTDescription_box}>
-        {/* //Part ONE */}
-        <div className={Style.NFTDescription_box_share}>
-          <p>Virtual Worlds</p>
-          <div className={Style.NFTDescription_box_share_box}>
-            <MdCloudUpload
-              className={Style.NFTDescription_box_share_box_icon}
-              onClick={() => openSocial()}
-            />
-
-            {social && (
-              <div className={Style.NFTDescription_box_share_box_social}>
-                <a href="#">
-                  <TiSocialFacebook /> Facebooke
-                </a>
-                <a href="#">
-                  <TiSocialInstagram /> Instragram
-                </a>
-                <a href="#">
-                  <TiSocialLinkedin /> LinkedIn
-                </a>
-                <a href="#">
-                  <TiSocialTwitter /> Twitter
-                </a>
-                <a href="#">
-                  <TiSocialYoutube /> YouTube
-                </a>
-              </div>
-            )}
-
-            <BsThreeDots
-              className={Style.NFTDescription_box_share_box_icon}
-              onClick={() => openNFTMenu()}
-            />
-
-            {NFTMenu && (
-              <div className={Style.NFTDescription_box_share_box_social}>
-                <a href="#">
-                  <BiDollar /> Change price
-                </a>
-                <a href="#">
-                  <BiTransferAlt /> Transfer
-                </a>
-                <a href="#">
-                  <MdReportProblem /> Report abouse
-                </a>
-                <a href="#">
-                  <MdOutlineDeleteSweep /> Delete item
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* //Part TWO */}
         <div className={Style.NFTDescription_box_profile}>
-          <h1>{nft.name} #{nft.tokenId}</h1>
-          <div className={Style.NFTDescription_box_profile_box}>
-            <div className={Style.NFTDescription_box_profile_box_left}>
-              <Image
-                src={images.user1}
-                alt="profile"
-                width={40}
-                height={40}
-                className={Style.NFTDescription_box_profile_box_left_img}
-              />
-              <div className={Style.NFTDescription_box_profile_box_left_info}>
-                <small>Creator</small> <br />
-                <Link href={{pathname: "/author", query: `${nft.seller}`}}>
-                <span>
-                  Karli Costa <MdVerified />
-                </span>
-                </Link>
+
+          {/* NFT Title */}
+          <h1>
+            {nft?.name} #{nft?.tokenId}
+          </h1>
+
+          {/* ── AUCTION INFO ── */}
+          {nft?.type === "auction" && (
+            <>
+              <div className={Style.NFTDescription_box_profile_timer}>
+                <MdTimer />
+                <span>Auction ending in:</span>
               </div>
-            </div>
 
-            <div className={Style.NFTDescription_box_profile_box_right}>
-              <Image
-                src={images.creatorbackground1}
-                alt="profile"
-                width={40}
-                height={40}
-                className={Style.NFTDescription_box_profile_box_left_img}
-              />
-
-              <div className={Style.NFTDescription_box_profile_box_right_info}>
-                <small>collection</small> <br />
-                <span>
-                  Mokeny app <MdVerified />
-                </span>
+              <div className={Style.NFTDescription_box_profile_timer_box}>
+                {isEnded ? (
+                  <p style={{ color: "red", fontWeight: "bold" }}>
+                    🔴 Auction Ended
+                  </p>
+                ) : (
+                  <p>
+                    {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m{" "}
+                    {timeLeft.seconds}s
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
 
+              {isEnded && bidHistory.length > 0 && (
+                <p style={{ color: "green", fontWeight: "bold" }}>
+                  🏆 Auction over — winner is the highest bidder
+                </p>
+              )}
+            </>
+          )}
+
+          {/* ── PRICE / CURRENT BID ── */}
           <div className={Style.NFTDescription_box_profile_biding}>
-            <p>
-              <MdTimer /> <span>Auction ending in:</span>
-            </p>
-
-            <div className={Style.NFTDescription_box_profile_biding_box_timer}>
-              <div
-                className={
-                  Style.NFTDescription_box_profile_biding_box_timer_item
-                }
-              >
-                <p>2</p>
-                <span>Days</span>
-              </div>
-              <div
-                className={
-                  Style.NFTDescription_box_profile_biding_box_timer_item
-                }
-              >
-                <p>22</p>
-                <span>hours</span>
-              </div>
-              <div
-                className={
-                  Style.NFTDescription_box_profile_biding_box_timer_item
-                }
-              >
-                <p>45</p>
-                <span>mins</span>
-              </div>
-              <div
-                className={
-                  Style.NFTDescription_box_profile_biding_box_timer_item
-                }
-              >
-                <p>12</p>
-                <span>secs</span>
-              </div>
+            <div>
+              <small>
+                {nft?.type === "auction" ? "Current Bid" : "Price"}
+              </small>
+              <p>
+                {nft?.type === "auction"
+                  ? `${currentBid} ETH`
+                  : `${nft?.price} ETH`}
+              </p>
+              {nft?.type === "auction" && (
+                <small>Starting Price: {nft?.startingPrice} ETH</small>
+              )}
             </div>
-
-            <div className={Style.NFTDescription_box_profile_biding_box_price}>
-              <div
-                className={
-                  Style.NFTDescription_box_profile_biding_box_price_bid
-                }
-              >
-                <small>Current Bid</small>
-                <p>
-                  {nft.price} ETH <span>( ≈ $3,221.22)</span>
-                </p>
-              </div>
-
-              <span>[96 in stock]</span>
-            </div>
-
-            {/* <div className={Style.NFTDescription_box_profile_biding_box_button}>
-              
-              { currentAccount == nft.seller.toLowerCase() ? (
-                <p>
-                  You cannot buy your own NFT
-                </p>
-              ) : currentAccount == nft.owner.toLowerCase() ? (
-
-                <Button
-                icon={<FaWallet />}
-                btnName="List on Marketplace"
-                handleClick={() => {}}
-                classStyle={Style.button}
-              />
-              ): (
-              <Button
-                icon={<FaWallet />}
-                btnName="Buy NFT"
-                handleClick={() => buyNFT(nft)}
-                classStyle={Style.button}
-              />
-
-              )} 
-              
-              <Button
-                icon={<FaPercentage />}
-                btnName="Make offer"
-                handleClick={() => {}}
-                classStyle={Style.button}
-              />
-            </div> */}
-
-<div className={Style.NFTDescription_box_profile_biding_box_button}>
-  {isSeller ? (
-    <p>You cannot buy your own NFT</p>
-  ) : isOwner ? (
-    <Button
-      icon={<FaWallet />}
-      btnName="List on Marketplace"
-      handleClick={() => router.push(`/reSellToken?id=${nft.tokenId}&tokenURI=${nft.tokenURI}`
-
-      )}
-      classStyle={Style.button}
-    />
-  ) : (
-    <Button
-      icon={<FaWallet />}
-      btnName="Buy NFT"
-      handleClick={() => buyNFT(nft)}
-      classStyle={Style.button}
-    />
-  )}
-
-  <Button
-    icon={<FaPercentage />}
-    btnName="Make offer"
-    handleClick={() => {}}
-    classStyle={Style.button}
-  />
-</div>
-
-
-
-            <div className={Style.NFTDescription_box_profile_biding_box_tabs}>
-              <button onClick={(e) => openTabs(e)}>Bid History</button>
-              <button onClick={(e) => openTabs(e)}>Provanance</button>
-              <button onClick={() => openOwmer()}>Owner</button>
-            </div>
-
-            {history && (
-              <div className={Style.NFTDescription_box_profile_biding_box_card}>
-                <NFTTabs dataTab={historyArray} />
-              </div>
-            )}
-            {provanance && (
-              <div className={Style.NFTDescription_box_profile_biding_box_card}>
-                <NFTTabs dataTab={provananceArray} />
-              </div>
-            )}
-
-            {owner && (
-              <div className={Style.NFTDescription_box_profile_biding_box_card}>
-                <NFTTabs dataTab={ownerArray} icon={<MdVerified />} />
-              </div>
-            )}
           </div>
+
+          {/* ── ACTION SECTION ── */}
+          <div className={Style.NFTDescription_box_profile_bidding_box_bid}>
+
+            {nft?.type === "auction" ? (
+              <>
+                {/* BID INPUT — Only for non-sellers and while auction is live */}
+                {!isSeller && !isEnded && (
+                  <div>
+                    <input className="p4"
+                      type="number"
+                      placeholder="Enter bid amount (ETH)"
+                      value={bidAmount}
+                      onChange={(e) => setBidAmount(e.target.value)}
+                      disabled={loading}
+                      min={0}
+                      step={0.01}
+                    />
+                    <Button
+                      btnName={loading ? "Placing Bid..." : "Place Bid"}
+                      handleClick={handleBid}
+                    />
+                  </div>
+                )}
+
+                {/* NOT CONNECTED */}
+                {!currentAccount && (
+                  <p style={{ color: "orange" }}>
+                    ⚠️ Connect wallet to participate
+                  </p>
+                )}
+
+                {/* ── SELLER CONTROLS ── */}
+                {isSeller && (
+                  <div  style={{ marginTop: "20px" }}>
+                    <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                      🛠 Seller Controls
+                    </p>
+                  <div className="flex flex-col">
+                    {/* END AUCTION — seller can end at any time */}
+                    <div className="m-10">
+                    <Button className="p-4 w-full"
+                      btnName={loading ? "Processing..." : isEnded ? "Finalize Auction" : "End Auction Early"}
+                      handleClick={handleEndAuction}
+                      disabled={loading}
+                    />
+                    </div>
+
+                    {/* CANCEL AUCTION — only if zero bids placed */}
+                    {bidHistory.length === 0 && !isEnded && (
+                     <div className="m-10">
+                     <Button 
+                        btnName={loading ? "Processing..." : "Cancel Auction"}
+                        handleClick={handleCancelAuction}
+                        disabled={loading}
+                      />
+                    </div>
+
+                    )}
+                    </div>
+
+                    {bidHistory.length > 0 && !isEnded && (
+                      <p style={{ fontSize: "12px", color: "gray", marginTop: "8px" }}>
+                        * Cannot cancel — bids have been placed
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ── FIXED PRICE SECTION ── */
+              <>
+                {!currentAccount ? (
+                  <p style={{ color: "orange" }}>⚠️ Connect wallet to buy</p>
+                ) : isSeller ? (
+                  <p style={{ color: "gray" }}>You cannot buy your own NFT</p>
+                ) : isOwner ? (
+                  <Button
+                    btnName="List / Resell NFT"
+                    handleClick={() =>
+                      router.push(`/reSellToken?id=${nft.tokenId}`)
+                    }
+                  />
+                ) : (
+                  <Button
+                    btnName={loading ? "Purchasing..." : "Buy NFT"}
+                    handleClick={handleBuyNFT}
+                    disabled={loading}
+                  />
+                )}
+              </>
+            )}
+
+          </div>
+
+          {/* ── STATUS MESSAGE ── */}
+          {actionMsg && (
+            <p
+              style={{
+                marginTop: "12px",
+                padding: "8px 12px",
+                background: actionMsg.includes("❌") ? "#ffe0e0" : "#e0ffe0",
+                borderRadius: "6px",
+                fontWeight: "bold",
+                color: actionMsg.includes("❌") ? "#c00" : "#060",
+              }}
+            >
+              {actionMsg}
+            </p>
+          )}
+
+          {/* ── BID HISTORY ── */}
+          {nft?.type === "auction" && (
+            <>
+              <h3 style={{ marginTop: "30px" }}>Bid History</h3>
+
+              {bidHistory.length === 0 ? (
+                <p style={{ color: "gray" }}>No bids yet — be the first!</p>
+              ) : (
+                <div className={Style.NFTDescription_box_profile_biding_box}>
+                  {[...bidHistory].reverse().map((bid, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 0",
+                        borderBottom: "1px solid #eee",
+                      }}
+                    >
+                      <p style={{ fontSize: "13px", wordBreak: "break-all" }}>
+                        {bid.bidder.slice(0, 6)}...{bid.bidder.slice(-4)}
+                      </p>
+                      <p style={{ fontWeight: "bold" }}>{bid.amount} ETH</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
         </div>
       </div>
     </div>

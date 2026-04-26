@@ -61,15 +61,6 @@ a {
 }
 
 /* Remove dark mode override */
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: light; /* force light scheme */
-  }
-  body {
-    color: var(--icons-color);
-    background: var(--main-bg-color); /* stays white */
-  }
-}
 
 /* THEME 1 */
 /* :root {
@@ -92,6 +83,25 @@ a {
    -0.3rem -0.3rem 1rem var(--shadow-dark-color);
 } */
 
+.dark {
+  --icons-color: #ffffff;
+  --icons-light-color: #ffffff57;
+  --icons-bg-color: #1e1e1e;
+
+  --shadow-dark-color: #2e2c2d;
+  --bg-shadow-dark-color: #2e2c2d;
+  --shadow-light-color: #0e131f;
+
+  --main-bg-color: #0e131f;
+
+  --box-shadow:
+    1px 1px 2px #444,
+   -1px -1px 2px #000;
+
+  --box-shadow-2:
+    1px 1px 2px #444,
+   -1px -1px 2px #000;
+}
 
 
 

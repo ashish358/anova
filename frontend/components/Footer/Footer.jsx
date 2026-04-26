@@ -15,9 +15,85 @@ import { RiSendPlaneFill } from "react-icons/ri";
 import Style from "./Footer.module.css";
 import images from "../../img";
 import { Discover, HelpCenter } from "../NavBar/index";
+// import { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useContext, useState,useEffect } from "react";
+// import axios from "axios";
+import { NFTMarketPlaceContext } from "../../context/NFTMarketPlaceContext.js";
+
 
 const Footer = () => {
-  return (
+  const [email, setEmail] = useState("");
+  const { setUserEmail } = useContext(NFTMarketPlaceContext);
+// const [email, setEmail] = useState("");
+
+//   const handleSubscribe = async () => {
+//   try {
+//     const res = await axios.post("/api/subscribe", { email });
+//     alert(res.data.message);
+//     setEmail("");
+//   } catch (err) {
+//     console.log(err);
+//     alert("Error");
+//   }
+// };
+// const handleSubscribe = async () => {
+//   try {
+//     const res = await axios.post("/api/subscribe", { email });
+
+//     if (res.data.success || res.data.message === "Subscribed successfully") {
+//       toast.success("🎉 Thanks for subscribing! You'll get early notifications.");
+//       setEmail("");
+//         setUserEmail(email);
+//     } else {
+//       toast.info(res.data.message);
+//     }
+
+//   } catch (err) {
+//     console.log(err);
+//     toast.error("Something went wrong");
+//   }
+// };  
+
+const handleSubscribe = async () => {
+  try {
+    if (!email) {
+      return toast.error("Please enter email");
+    }
+
+    const res = await axios.post("/api/subscribe", { email });
+
+    if (res.data.success || res.data.message === "Subscribed successfully") {
+      
+      // ✅ FIRST store in context
+      setUserEmail(email);
+localStorage.setItem("userEmail", email);
+      console.log("Context email set:", email);
+
+      // ✅ THEN clear input
+      setEmail("");
+
+      toast.success("🎉 Thanks for subscribing! You'll get early notifications.");
+      
+    } else {
+      toast.info(res.data.message);
+    }
+
+  } catch (err) {
+    console.log(err);
+    toast.error("Something went wrong");
+  }
+};
+
+// useEffect(() => {
+//   const storedEmail = localStorage.getItem("userEmail");
+//   if (storedEmail) {
+//     setUserEmail(storedEmail);
+//   }
+// }, []);
+
+return (
     <div className={Style.footer}>
       <div className={Style.footer_box}>
         <div className={Style.footer_box_social}>
@@ -65,8 +141,21 @@ const Footer = () => {
           <h3>Subscribe</h3>
 
           <div className={Style.subscribe_box}>
-            <input type="email" placeholder="Enter your email *" />
-            <RiSendPlaneFill className={Style.subscribe_box_send} />
+            {/* <input type="email" placeholder="Enter your email *" /> */}
+{/* <input
+  type="email"
+  placeholder="Enter your email *"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/> */}
+<input
+  type="email"
+  placeholder="Enter your email *"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/>
+
+            <RiSendPlaneFill className={Style.subscribe_box_send}   onClick={handleSubscribe} />
           </div>
           <div className={Style.subscribe_box_info}>
             <p>

@@ -15,6 +15,8 @@ import { useRouter } from "next/router";
 
 // import from smart contract
 import { NFTMarketPlaceContext } from "../../context/NFTMarketPlaceContext"; 
+import axios from "axios";
+
 
 
 const NavBar = () => {
@@ -27,6 +29,8 @@ const NavBar = () => {
   const [profile, setProfile] = useState(false);
   const [openSideMenu, setOpenSideMenu] = useState(false);
 
+
+  
   const openMenu = (e) => {
     const btnText = e.target.innerText;
     if (btnText == "Discover") {
@@ -57,6 +61,10 @@ const NavBar = () => {
       setNotification(false);
     }
   };
+
+      const toggleTheme = () => {
+  document.body.classList.toggle("dark");
+};
 
   const openProfile = () => {
     if (!profile) {
@@ -152,7 +160,6 @@ const NavBar = () => {
           </div>
 
           {/* USER PROFILE */}
-
           <div className={Style.navbar_container_right_profile_box}>
             <div className={Style.navbar_container_right_profile}>
               <Image
@@ -166,6 +173,16 @@ const NavBar = () => {
 
               {profile && <Profile currentAccount={currentAccount} />}
             </div>
+          </div>
+
+          {/* 🌙 THEME BUTTON (NOW AFTER PROFILE) */}
+          <div className={Style.navbar_container_right_theme}>
+            <button
+              onClick={() => document.body.classList.toggle("dark")}
+              className={Style.theme_toggle}
+            >
+              🌙
+            </button>
           </div>
 
           {/* MENU BUTTON */}

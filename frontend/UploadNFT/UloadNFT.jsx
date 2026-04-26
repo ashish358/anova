@@ -24,8 +24,20 @@ const UloadNFT = ({uploadToIPFS, createNFT}) => {
   const [category, setCategory] = useState(0);
   const [properties, setProperties] = useState("");
   const [image, setImage] = useState(null);
+  const [saleType, setSaleType] = useState("fixed");
+const [time, setTime] = useState("");
 
   const router = useRouter();
+
+
+  const getDuration = () => {
+  if (!time) return 0;
+
+  const selectedTime = new Date(time).getTime();
+  const currentTime = Date.now();
+
+  return Math.floor((selectedTime - currentTime) / 1000);
+};
 
   const categoryArry = [
     {
@@ -198,6 +210,39 @@ const UloadNFT = ({uploadToIPFS, createNFT}) => {
 
                     <div className={formStyle.Form_box_input}>
             <label htmlFor="Price">Price</label>
+  {/* <div className={formStyle.Form_box_input} >
+  <label >Sale Type</label>
+  <select  onChange={(e) => setSaleType(e.target.value)}>
+    <option value="fixed">Fixed Price</option>
+    <option value="auction">Auction</option>
+  </select>
+</div> */}
+
+<div className="flex flex-col gap-2 ">
+  <label className="text-sm font-semibold text-gray-700">
+    Sale Type
+  </label>
+
+  <select
+    onChange={(e) => setSaleType(e.target.value)}
+    className="px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-700 
+               shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 
+               focus:border-blue-500 transition-all duration-200 cursor-pointer"
+  >
+    <option value="fixed">Fixed Price</option>
+    <option value="auction">Auction</option>
+  </select>
+</div>
+{saleType === "auction" && (
+  <div className={formStyle.Form_box_input}>
+    <label>Auction End Time</label>
+    <input
+      type="datetime-local"
+      min={new Date().toISOString().slice(0, 16)}
+      onChange={(e) => setTime(e.target.value)}
+    />
+  </div>
+)}
             <div className={formStyle.Form_box_input_box}>
               <div className={formStyle.Form_box_input_box_icon}>
                 <AiTwotonePropertySafety />
@@ -214,7 +259,7 @@ const UloadNFT = ({uploadToIPFS, createNFT}) => {
         <div className={Style.upload_box_btn}>
           <Button
             btnName="Upload"
-            handleClick={async () => createNFT(name, price, image ,description, router)}
+            handleClick={async () => createNFT(name, price, image ,description, router, saleType,saleType === "auction" ? getDuration() : 0)}
             // handleClick={async () => createNFT(name, price, image, description, router, website, royalties, fileSize, category)}
             classStyle={Style.upload_box_btn_style}
           />

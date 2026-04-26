@@ -90,6 +90,7 @@ const AuthorNFTCardBox = ({
       user: images.user1,
     },
   ];
+  
   return (
     <div className={Style.AuthorNFTCardBox}>
       {collectiables && <NFTCardTwo NFTData={nfts} />}
